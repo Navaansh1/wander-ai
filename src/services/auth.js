@@ -1,5 +1,12 @@
 const BACKEND_URL = (import.meta.env?.VITE_API_URL || 'http://127.0.0.1:5000').replace(/\/+$/, '');
 
+function shouldAttemptFetch() {
+  const hasLiveBackend = Boolean(import.meta.env?.VITE_API_URL);
+  const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  return hasLiveBackend || isLocalhost;
+}
+
 export function getAuthToken() {
   return localStorage.getItem('wanderai_token');
 }
@@ -30,49 +37,53 @@ export function setStoredUser(user) {
 }
 
 export async function registerUser({ name, email, password }) {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setAuthToken(data.token);
-      setStoredUser(data.user);
-      return data;
+  if (shouldAttemptFetch()) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuthToken(data.token);
+        setStoredUser(data.user);
+        return data;
+      }
+    } catch (err) {
+      console.warn('[WanderAI] Remote auth unavailable, creating local traveler session.');
     }
-  } catch (err) {
-    console.warn('[WanderAI] Remote auth unavailable, creating local traveler session.');
   }
 
   // Graceful offline fallback session
   const fallbackUser = { id: 'usr_' + Date.now(), name: name || 'Traveler', email };
-  setAuthToken('offline_token_' + Date.now());
+  setAuthToken('token_' + Date.now());
   setStoredUser(fallbackUser);
   return { success: true, user: fallbackUser };
 }
 
 export async function loginUser({ email, password }) {
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setAuthToken(data.token);
-      setStoredUser(data.user);
-      return data;
+  if (shouldAttemptFetch()) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAuthToken(data.token);
+        setStoredUser(data.user);
+        return data;
+      }
+    } catch (err) {
+      console.warn('[WanderAI] Remote auth unavailable, logging in local traveler session.');
     }
-  } catch (err) {
-    console.warn('[WanderAI] Remote auth unavailable, logging in local traveler session.');
   }
 
   // Graceful offline fallback login
   const fallbackUser = { id: 'usr_' + Date.now(), name: email.split('@')[0] || 'Traveler', email };
-  setAuthToken('offline_token_' + Date.now());
+  setAuthToken('token_' + Date.now());
   setStoredUser(fallbackUser);
   return { success: true, user: fallbackUser };
 }
@@ -81,17 +92,19 @@ export async function fetchCurrentUser() {
   const token = getAuthToken();
   if (!token) return null;
 
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setStoredUser(data.user);
-      return data.user;
+  if (shouldAttemptFetch()) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setStoredUser(data.user);
+        return data.user;
+      }
+    } catch (err) {
+      // Return local user
     }
-  } catch (err) {
-    // If remote fails, return existing stored local user
   }
 
   return getStoredUser();
