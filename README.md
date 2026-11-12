@@ -21,7 +21,7 @@
 ---
 
 ## 📌 Project Overview
-**WanderAI** is an advanced full-stack travel engineering platform developed as a **B.Tech Capstone Project** at **J.C. Bose University of Science and Technology, YMCA, Faridabad** under the supervision of **Dr. Harish**.
+**WanderAI** is an advanced full-stack travel engineering platform developed as a **B.Tech Capstone Project** at **J.C. Bose University of Science and Technology, YMCA, Faridabad**.
 
 Unlike static travel blogs or generic chat-based LLM outputs, WanderAI solves real travel friction:
 1. **Visual Atmosphere Matching**: Automatically crossfades high-definition natural photography matching your destination (35+ curated presets with dynamic global fallback).
@@ -166,7 +166,6 @@ Open your browser at **`http://localhost:5173/`**.
 - **Institution**: J.C. Bose University of Science and Technology, YMCA, Faridabad
 - **Degree**: Bachelor of Technology (B.Tech)
 - **Project Title**: WanderAI — Smart Full-Stack AI Travel Companion
-- **Supervisor**: Dr. Harish
 - **Developer**: Navaansh
 
 ---
